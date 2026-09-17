@@ -33,10 +33,14 @@ function App() {
     return <div className="loading">Loading Atlas...</div>;
   }
 
+  const handlePageChange = (page: string) => {
+    setCurrentPage(page as Page);
+  };
+
   return (
     <Layout
       workspace={workspace}
-      onPageChange={setCurrentPage}
+      onPageChange={handlePageChange}
       onServiceSelect={setSelectedService}
       selectedService={selectedService}
     >
@@ -47,7 +51,7 @@ function App() {
 
       {/* Center pane: Canvas */}
       <div className="pane pane-center">
-        {currentPage === 'dashboard' && <HealthDashboard onIncidentSelect={() => setCurrentPage('incident')} />}
+        {currentPage === 'dashboard' && <HealthDashboard onIncidentSelect={() => handlePageChange('incident')} />}
         {currentPage === 'graph' && <DependencyGraph onServiceSelect={setSelectedService} />}
         {currentPage === 'incident' && <IncidentWorkspace />}
       </div>
