@@ -1,0 +1,363 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 200ms;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+html {
+  @apply bg-white text-slate-900;
+}
+
+html.dark {
+  @apply bg-slate-950 text-slate-100;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Glassmorphism & Glowing Effects */
+.glassmorphic {
+  backdrop-filter: blur(10px);
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.5), inset 0 0 20px rgba(6, 182, 212, 0.1);
+}
+
+.glow-purple {
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.1);
+}
+
+.glow-amber {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.5), inset 0 0 20px rgba(245, 158, 11, 0.1);
+}
+
+.glow-red {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.5), inset 0 0 20px rgba(239, 68, 68, 0.1);
+}
+
+/* Node hover glow animation */
+@keyframes nodeGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(6, 182, 212, 0.8);
+  }
+}
+
+.node-glow {
+  animation: nodeGlow 2s ease-in-out infinite;
+}
+
+/* Pulse animation for critical alerts */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.pulse-critical {
+  animation: pulse-glow 1.5s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
+}
+
+/* Smooth fade in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* SVG node transitions */
+svg circle {
+  transition: r 0.2s ease, stroke-width 0.2s ease, opacity 0.2s ease;
+}
+
+svg line {
+  transition: stroke 0.2s ease, stroke-width 0.2s ease, opacity 0.2s ease;
+}
+
+/* Smooth scrollbar for Firefox */
+* {
+  scrollbar-color: rgba(100, 116, 139, 0.5) transparent;
+  scrollbar-width: thin;
+}
+
+/* Chrome scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.8);
+}
+
+/* Button micro-interactions */
+button {
+  position: relative;
+  overflow: hidden;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+  pointer-events: none;
+}
+
+button:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Professional Enterprise Observability Styling */
+
+/* Status indicators with health colors */
+.status-critical {
+  @apply text-red-400;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.status-warning {
+  @apply text-yellow-400;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+.status-healthy {
+  @apply text-emerald-400;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+/* Alert severity badges */
+.alert-p0 {
+  @apply bg-red-900 text-red-100 border border-red-700;
+}
+
+.alert-p1 {
+  @apply bg-orange-900 text-orange-100 border border-orange-700;
+}
+
+.alert-p2 {
+  @apply bg-yellow-900 text-yellow-100 border border-yellow-700;
+}
+
+.alert-p3 {
+  @apply bg-blue-900 text-blue-100 border border-blue-700;
+}
+
+/* Metric display cards */
+.metric-card {
+  @apply rounded-lg p-3 border transition-all duration-200;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.5), rgba(30, 41, 59, 0.5));
+  border-color: rgba(71, 85, 105, 0.3);
+}
+
+.metric-card:hover {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(51, 65, 85, 0.7));
+  border-color: rgba(100, 116, 139, 0.5);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+}
+
+/* Professional gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, #0b0f17, #1e293b);
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+}
+
+/* Smooth state transitions */
+.transition-smooth {
+  @apply transition-all duration-300 ease-out;
+}
+
+/* Professional divider */
+.divider-subtle {
+  border-color: rgba(71, 85, 105, 0.2);
+}
+
+/* Resource health indicator pulse animation */
+@keyframes health-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.health-pulse {
+  animation: health-pulse 2s infinite;
+}
+
+/* Alert pulse animation */
+@keyframes alert-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.alert-pulse {
+  animation: alert-pulse 1.5s infinite;
+}
+
+/* Professional header styling */
+.header-enterprise {
+  @apply border-b border-slate-800 bg-gradient-to-r from-slate-900 to-slate-800;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Clean card for observability details */
+.observability-card {
+  @apply rounded-lg p-4 border border-slate-700 bg-slate-950 hover:border-slate-600 transition-colors;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Metric gauge styling */
+.metric-gauge {
+  @apply relative w-full h-2 rounded-full overflow-hidden bg-slate-800;
+}
+
+.metric-gauge-fill {
+  @apply h-full rounded-full transition-all duration-500;
+  background: linear-gradient(90deg, #0ea5e9, #06b6d4);
+}
+
+/* Professional typography for metrics */
+.metric-label {
+  @apply text-xs font-semibold uppercase tracking-wider text-slate-400;
+}
+
+.metric-value {
+  @apply text-2xl font-bold text-slate-100 mt-1;
+}
+
+.metric-unit {
+  @apply text-xs text-slate-500 ml-1;
+}
+
+/* Smooth panel collapse animation */
+.panel-exit {
+  animation: slideOutRight 0.3s ease-out forwards;
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.panel-enter {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Quick action button styling */
+.quick-action-btn {
+  @apply inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(0, 184, 148, 0.2));
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  color: #06b6d4;
+}
+
+.quick-action-btn:hover {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.4), rgba(0, 184, 148, 0.4));
+  border-color: rgba(6, 182, 212, 0.6);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+}
+
+/* Status badge styling */
+.status-badge {
+  @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold;
+}
+
+.status-badge-healthy {
+  @apply bg-emerald-900 text-emerald-200 border border-emerald-700;
+}
+
+.status-badge-degraded {
+  @apply bg-yellow-900 text-yellow-200 border border-yellow-700;
+}
+
+.status-badge-failed {
+  @apply bg-red-900 text-red-200 border border-red-700;
+}

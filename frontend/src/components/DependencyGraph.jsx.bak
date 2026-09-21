@@ -1,0 +1,236 @@
+import React, { useMemo } from 'react';
+import { Server, Database, HardDrive, Lock, MessageSquare } from 'lucide-react';
+import { mockResources } from '../mockData';
+
+function DependencyGraph({ selectedResource, onSelectResource, isDark }) {
+  const getIconForType = (type) => {
+    switch (type) {
+      case 'Web App':
+        return Server;
+      case 'SQL Database':
+        return Database;
+      case 'Redis Cache':
+        return HardDrive;
+      case 'Key Vault':
+        return Lock;
+      case 'Service Bus':
+        return MessageSquare;
+      default:
+        return Server;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'healthy':
+        return { bg: 'bg-emerald-900', border: 'border-emerald-700', text: 'text-emerald-400', dot: 'bg-emerald-500' };
+      case 'degraded':
+        return { bg: 'bg-yellow-900', border: 'border-yellow-700', text: 'text-yellow-400', dot: 'bg-yellow-500' };
+      case 'failing':
+        return { bg: 'bg-red-900', border: 'border-red-700', text: 'text-red-400', dot: 'bg-red-500' };
+      default:
+        return { bg: 'bg-slate-800', border: 'border-slate-700', text: 'text-slate-300', dot: 'bg-slate-500' };
+    }
+  };
+
+  // Build dependency positions based on a simple graph layout
+  const positions = useMemo(() => {
+    const pos = {};
+    const rows = Math.ceil(Math.sqrt(mockResources.length));
+    
+    mockResources.forEach((resource, idx) => {
+      const row = Math.floor(idx / rows);
+      const col = idx % rows;
+      pos[resource.id] = {
+        x: col * 200 + 50,
+        y: row * 150 + 50,
+      };
+    });
+    
+    return pos;
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className={`text-sm font-bold mb-4 uppercase tracking-wide ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Cloud Resource Topology</h3>
+        
+        {/* Graph Canvas */}
+        <div className={`${isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-300'} border rounded overflow-hidden`} style={{ height: '500px' }}>
+          <svg className="w-full h-full" style={{ background: isDark ? 'linear-gradient(135deg, rgba(15, 23, 42, 1) 0%, rgba(30, 41, 59, 1) 100%)' : 'linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(248, 250, 252, 1) 100%)' }}>
+            {/* Draw dependency lines */}
+            {mockResources.map(resource => 
+              resource.dependencies.map(depId => {
+                const dep = mockResources.find(r => r.id === depId);
+                if (!dep || !positions[resource.id] || !positions[depId]) return null;
+                
+                const from = positions[resource.id];
+                const to = positions[depId];
+                
+                return (
+                  <g key={`line-${resource.id}-${depId}`}>
+                    <line
+                      x1={from.x + 40}
+                      y1={from.y + 40}
+                      x2={to.x + 40}
+                      y2={to.y + 40}
+                      stroke={resource.status === 'healthy' ? '#10b981' : resource.status === 'degraded' ? '#eab308' : '#ef4444'}
+                      strokeWidth="2"
+                      strokeDasharray={resource.status === 'healthy' ? '0' : '5,5'}
+                      opacity="0.6"
+                    />
+                    {/* Arrow head */}
+                    <polygon
+                      points={`${to.x + 40},${to.y + 40} ${to.x + 30},${to.y + 35} ${to.x + 30},${to.y + 45}`}
+                      fill={resource.status === 'healthy' ? '#10b981' : resource.status === 'degraded' ? '#eab308' : '#ef4444'}
+                      opacity="0.6"
+                    />
+                  </g>
+                );
+              })
+            )}
+
+            {/* Draw nodes */}
+            {mockResources.map(resource => {
+              const Icon = getIconForType(resource.type);
+              const colors = getStatusColor(resource.status);
+              const pos = positions[resource.id];
+              const isSelected = selectedResource?.id === resource.id;
+
+              return (
+                <g
+                  key={resource.id}
+                  onClick={() => onSelectResource(resource)}
+                  style={{ cursor: 'pointer' }}
+                  className="group"
+                >
+                  {/* Node background */}
+                  <rect
+                    x={pos.x}
+                    y={pos.y}
+                    width="80"
+                    height="80"
+                    rx="8"
+                    className={`${colors.bg} ${colors.border}`}
+                    stroke={isSelected ? '#06b6d4' : colors.border.replace('border-', '')}
+                    strokeWidth={isSelected ? '3' : '2'}
+                    opacity={isSelected ? '1' : '0.7'}
+                    style={{ filter: isSelected ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))' : 'none' }}
+                  />
+
+                  {/* Health indicator dot */}
+                  <circle
+                    cx={pos.x + 65}
+                    cy={pos.y + 8}
+                    r="4"
+                    className={colors.dot}
+                    style={{ filter: 'drop-shadow(0 0 3px rgba(0, 0, 0, 0.8))' }}
+                  />
+
+                  {/* Icon (simplified SVG rendering) */}
+                  <text
+                    x={pos.x + 40}
+                    y={pos.y + 35}
+                    textAnchor="middle"
+                    fontSize="24"
+                    fill={colors.text.replace('text-', '')}
+                    dominantBaseline="middle"
+                  >
+                    {resource.type === 'Web App' ? '▥' : resource.type === 'SQL Database' ? '⊙' : resource.type === 'Redis Cache' ? '◆' : resource.type === 'Key Vault' ? '🔐' : '◯'}
+                  </text>
+
+                  {/* Label */}
+                  <text
+                    x={pos.x + 40}
+                    y={pos.y + 62}
+                    textAnchor="middle"
+                    fontSize="10"
+                    fill="#e2e8f0"
+                    dominantBaseline="middle"
+                    style={{ pointerEvents: 'none', fontWeight: 'bold' }}
+                  >
+                    {resource.name.split('-').slice(0, 2).join('-')}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+      </div>
+
+      {/* Legend & Resources List */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <h3 className={`text-sm font-bold mb-3 uppercase tracking-wide ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Legend</h3>
+          <div className="space-y-2">
+            {[
+              { status: 'healthy', label: 'Healthy' },
+              { status: 'degraded', label: 'Degraded' },
+              { status: 'failing', label: 'Failing' },
+            ].map(item => {
+              const colors = getStatusColor(item.status);
+              return (
+                <div key={item.status} className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${colors.dot}`}></div>
+                  <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{item.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <h3 className={`text-sm font-bold mb-3 uppercase tracking-wide ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Resource Types</h3>
+          <div className="space-y-2">
+            {['Web App', 'SQL Database', 'Redis Cache', 'Key Vault', 'Service Bus'].map(type => (
+              <div key={type} className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                {type}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Resource List */}
+      <div>
+        <h3 className={`text-sm font-bold mb-3 uppercase tracking-wide ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>All Resources ({mockResources.length})</h3>
+        <div className="grid grid-cols-1 gap-2">
+          {mockResources.map(resource => {
+            const colors = getStatusColor(resource.status);
+            const isSelected = selectedResource?.id === resource.id;
+            return (
+              <div
+                key={resource.id}
+                onClick={() => onSelectResource(resource)}
+                className={`p-3 rounded border cursor-pointer transition-all ${
+                  isSelected
+                    ? 'bg-cyan-950 border-cyan-700 ring-2 ring-cyan-500'
+                    : isDark
+                    ? `${colors.bg} ${colors.border} hover:bg-slate-700`
+                    : `bg-slate-100 border-slate-300 hover:bg-slate-200`
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className={`text-sm font-bold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{resource.name}</p>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{resource.type}</span>
+                      <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>•</span>
+                      <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{resource.region}</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-sm font-bold ${colors.text}`}>{resource.healthScore}%</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>${resource.cost30d}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default DependencyGraph;
