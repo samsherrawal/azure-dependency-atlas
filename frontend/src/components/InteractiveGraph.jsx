@@ -19,6 +19,8 @@ function InteractiveGraph({ nodes, edges, isDark, onNodeSelect, onFailureSimulat
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [svgDimensions, setSvgDimensions] = useState({ width: 800, height: 500 });
+  const [draggingNodeId, setDraggingNodeId] = useState(null);
+  const [hoveredNodeId, setHoveredNodeId] = useState(null);
   const containerRef = useRef(null);
 
   // Update SVG dimensions on mount and resize
@@ -127,7 +129,19 @@ function InteractiveGraph({ nodes, edges, isDark, onNodeSelect, onFailureSimulat
   };
 
   const handleMouseMove = (e) => {
-    if (isDragging) {
+    if (draggingNodeId) {
+      // Node dragging mode
+      const svgRect = svgRef.current?.getBoundingClientRect();
+      if (svgRect) {
+        const x = (e.clientX - svgRect.left - panOffset.x) / zoomState.scale;
+        const y = (e.clientY - svgRect.top - panOffset.y) / zoomState.scale;
+        setPositions(prev => ({
+          ...prev,
+          [draggingNodeId]: { x, y },
+        }));
+      }
+    } else if (isDragging) {
+      // Pan mode
       const dx = e.clientX - dragStart.x;
       const dy = e.clientY - dragStart.y;
       setPanOffset(prev => ({
@@ -140,6 +154,7 @@ function InteractiveGraph({ nodes, edges, isDark, onNodeSelect, onFailureSimulat
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    setDraggingNodeId(null);
   };
 
   const handleWheel = (e) => {
@@ -179,6 +194,19 @@ function InteractiveGraph({ nodes, edges, isDark, onNodeSelect, onFailureSimulat
     }[node.status] || { bg: '#64748b', border: '#475569', shadow: '#64748b' };
   };
 
+  const handleNodeMouseDown = (e, nodeId) => {
+    e.stopPropagation();
+    setDraggingNodeId(nodeId);
+  };
+
+  const handleNodeMouseEnter = (nodeId) => {
+    setHoveredNodeId(nodeId);
+  };
+
+  const handleNodeMouseLeave = () => {
+    setHoveredNodeId(null);
+  };
+
   return (
     <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={{ background: isDark ? 'linear-gradient(135deg, rgba(15, 23, 42, 1) 0%, rgba(30, 41, 59, 1) 100%)' : 'linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(248, 250, 252, 1) 100%)' }}>
       {/* SVG Canvas */}
@@ -186,14 +214,17 @@ function InteractiveGraph({ nodes, edges, isDark, onNodeSelect, onFailureSimulat
         ref={svgRef}
         width={svgDimensions.width}
         height={svgDimensions.height}
-        className="absolute top-0 left-0 cursor-grab active:cursor-grabbing"
+        className="absolute top-0 left-0"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
         onContextMenu={(e) => e.preventDefault()}
-        style={{ filter: 'drop-shadow(0 0 20px rgba(0, 0, 0, 0.3))' }}
+        style={{ 
+          cursor: draggingNodeId ? 'grabbing' : hoveredNodeId ? 'grab' : 'default',
+          filter: 'drop-shadow(0 0 20px rgba(0, 0, 0, 0.3))'
+        }}
       >
         <g transform={`translate(${panOffset.x}, ${panOffset.y}) scale(${zoomState.scale})`}>
           {/* Draw edges */}
@@ -352,11 +383,19 @@ function InteractiveGraph({ nodes, edges, isDark, onNodeSelect, onFailureSimulat
                   fill={colors.bg}
                   stroke={colors.border}
                   strokeWidth={2}
-                  style={{ filter: `drop-shadow(0 0 12px ${colors.shadow})` }}
                   onClick={() => handleNodeClick(node.id)}
-                  onMouseEnter={() => onNodeSelect?.(node)}
-                  className="cursor-pointer hover:filter transition-all"
-                  opacity={0.9}
+                  onMouseEnter={() => {
+                    onNodeSelect?.(node);
+                    handleNodeMouseEnter(node.id);
+                  }}
+                  onMouseLeave={() => handleNodeMouseLeave()}
+                  onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
+                  className="transition-all"
+                  style={{ 
+                    filter: `drop-shadow(0 0 12px ${colors.shadow})`,
+                    cursor: 'grab',
+                    opacity: 0.9,
+                  }}
                 />
 
                 {/* Node icon */}
@@ -421,7 +460,7 @@ function InteractiveGraph({ nodes, edges, isDark, onNodeSelect, onFailureSimulat
       {/* Controls Overlay */}
       <div className={`absolute bottom-4 left-4 ${isDark ? 'bg-slate-900/90 border-slate-700 glow-cyan' : 'bg-white/90 border-slate-300'} border rounded-lg p-3 backdrop-blur-md`}>
         <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-          <strong>Controls:</strong> Click node to simulate, scroll to zoom, drag to pan
+          <strong>Controls:</strong> Click node to simulate, drag node to move, scroll to zoom, Ctrl+drag to pan
         </p>
       </div>
     </div>
